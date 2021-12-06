@@ -15,8 +15,8 @@ var (
 )
 
 func PrometheusMetrics(logger log.Logger) {
-	metricsAdress := env.Get("METRICS_ADDRESS", "/metrics")
-	metricsPath := env.Get("METRICS_PATH", "8080")
+	metricsPath := env.Get(METRICS_PATH, "/metrics")
+	metricsAdress := env.Get(METRICS_ADDRESS, "8080")
 
 	logger.Info("About to start prometheus handler server")
 
