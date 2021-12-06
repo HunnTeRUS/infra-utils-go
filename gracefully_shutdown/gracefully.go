@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/HunnTeRUS/infra-utils-go/configuration/env"
 	"github.com/HunnTeRUS/infra-utils-go/configuration/log"
 )
 
@@ -31,7 +32,7 @@ func GracefullyShutdownRun(handler http.Handler, addr string, logger log.Logger)
 
 		logger.Info("Shutdown signal received")
 
-		shutdownTimeout := getDuration(GRACEFULLY_SHUTDOWN_TIMER, FALLBACK_GRACEFULLY_SHUTDOWN)
+		shutdownTimeout := env.GetDuration(GRACEFULLY_SHUTDOWN_TIMER, FALLBACK_GRACEFULLY_SHUTDOWN)
 		ctxTimeout, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 
 		defer func() {
@@ -55,13 +56,4 @@ func GracefullyShutdownRun(handler http.Handler, addr string, logger log.Logger)
 	}()
 
 	return errC
-}
-
-func getDuration(key string, fallback time.Duration) time.Duration {
-	value, ok := os.LookupEnv(key)
-	if !ok {
-		return fallback
-	}
-	i, _ := time.ParseDuration(value)
-	return i
 }

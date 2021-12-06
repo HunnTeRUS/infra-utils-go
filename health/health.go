@@ -1,28 +1,33 @@
 package health
 
 import (
+	"fmt"
 	"net/http"
 
+	"github.com/HunnTeRUS/infra-utils-go/configuration/env"
 	"github.com/HunnTeRUS/infra-utils-go/configuration/log"
 	"github.com/gin-gonic/gin"
 )
 
 type HealthChecker func() error
 
-const (
-	HealthAddr = ":4444"
-	HealthPath = "/health"
+var (
+	HEALTH_CHECKER_ADDRESS = "HEALTH_CHECKER_ADDRESS"
+	HEALTH_CHECKER_PATH    = "HEALTH_CHECKER_PATH"
 )
 
 func HealthCheck(logger log.Logger, checkers ...HealthChecker) {
+	healthCheckerPath := env.Get(HEALTH_CHECKER_PATH, "/health")
+	healthCheckerAdress := env.Get(HEALTH_CHECKER_ADDRESS, "4444")
+
 	health := gin.Default()
 
-	health.GET(HealthPath, func(c *gin.Context) {
+	health.GET(healthCheckerPath, func(c *gin.Context) {
 		HealthCheckHandler(c, checkers...)
 	})
 
-	if err := health.Run(HealthAddr); err != nil {
-		logger.Error("Test", err)
+	if err := health.Run(fmt.Sprintf(":%s", healthCheckerAdress)); err != nil {
+		logger.Error(fmt.Sprintf("Error trying to execute healthChecker on port %s", healthCheckerAdress), err)
 		panic(err)
 	}
 }
@@ -35,9 +40,10 @@ func HealthCheckHandler(c *gin.Context, checkers ...HealthChecker) {
 		}
 
 		if err := checker(); err != nil {
-			c.String(http.StatusInternalServerError, "health")
+			c.String(http.StatusInternalServerError, fmt.Sprintf(`{"healthy": false, "error": "%v"`, err))
 			return
 		}
 	}
-	c.String(http.StatusOK, "aaaaa")
+
+	c.String(http.StatusOK, `{"healthy": true}`)
 }
