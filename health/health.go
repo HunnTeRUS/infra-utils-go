@@ -3,7 +3,7 @@ package health
 import (
 	"net/http"
 
-	"github.com/HunnTeRUS/infra-utils-go/logger"
+	"github.com/HunnTeRUS/infra-utils-go/configuration/log"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,7 +14,7 @@ const (
 	HealthPath = "/health"
 )
 
-func HealthCheck(checkers ...HealthChecker) {
+func HealthCheck(logger log.Logger, checkers ...HealthChecker) {
 	health := gin.Default()
 
 	health.GET(HealthPath, func(c *gin.Context) {

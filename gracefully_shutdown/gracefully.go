@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/HunnTeRUS/infra-utils-go/logger"
+	"github.com/HunnTeRUS/infra-utils-go/configuration/log"
 )
 
 const (
@@ -16,7 +16,7 @@ const (
 	FALLBACK_GRACEFULLY_SHUTDOWN = 5 * time.Second
 )
 
-func GracefullyShutdownRun(handler http.Handler, addr string) <-chan error {
+func GracefullyShutdownRun(handler http.Handler, addr string, logger log.Logger) <-chan error {
 	errC := make(chan error, 1)
 
 	srv := &http.Server{

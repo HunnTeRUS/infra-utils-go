@@ -1,7 +1,7 @@
 package prometheus_metrics
 
 import (
-	"github.com/HunnTeRUS/infra-utils-go/logger"
+	"github.com/HunnTeRUS/infra-utils-go/configuration/log"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -11,7 +11,7 @@ const (
 	MetricsPath = "/metrics"
 )
 
-func PrometheusMetrics() {
+func PrometheusMetrics(logger log.Logger) {
 	logger.Info("Abount to start prometheus handler server")
 
 	prom := promhttp.Handler()
