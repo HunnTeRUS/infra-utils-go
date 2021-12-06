@@ -10,7 +10,7 @@ import (
 type HealthChecker func() error
 
 const (
-	HealthAddr = ":3333"
+	HealthAddr = ":4444"
 	HealthPath = "/health"
 )
 
