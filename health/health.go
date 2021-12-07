@@ -9,6 +9,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func init() {
+	gin.SetMode(gin.ReleaseMode)
+}
+
 type HealthChecker func() error
 
 var (

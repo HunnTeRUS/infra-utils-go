@@ -9,6 +9,10 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+func init() {
+	gin.SetMode(gin.ReleaseMode)
+}
+
 var (
 	METRICS_ADDRESS = "METRICS_ADDRESS"
 	METRICS_PATH    = "METRICS_PATH"
