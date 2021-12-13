@@ -1,3 +1,4 @@
+//Package gracefully_shutdown implements the application shutdown
 package gracefully_shutdown
 
 import (
@@ -13,10 +14,14 @@ import (
 )
 
 const (
-	GRACEFULLY_SHUTDOWN_TIMER    = "GRACEFULLY_SHUTDOWN_TIMER"
+	//GRACEFULLY_SHUTDOWN_TIMER receives a timeout to wait for current requests get finished
+	GRACEFULLY_SHUTDOWN_TIMER = "GRACEFULLY_SHUTDOWN_TIMER"
+	//FALLBACK_GRACEFULLY_SHUTDOWN sets a timeout fallback value to set if GRACEFULLY_SHUTDOWN_TIMER is not set
 	FALLBACK_GRACEFULLY_SHUTDOWN = 5 * time.Second
 )
 
+//GracefullyShutdownRun implements the gracefully shutdown to the application, waits
+//for a SO signal to shutdown the application
 func GracefullyShutdownRun(handler http.Handler, addr string, logger log.Logger) <-chan error {
 	errC := make(chan error, 1)
 

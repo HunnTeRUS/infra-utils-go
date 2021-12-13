@@ -1,3 +1,4 @@
+//Package env provides different methods to get variables from os environment.
 package env
 
 import (
@@ -8,10 +9,13 @@ import (
 )
 
 const (
-	LogLevel  = "LOG_LEVEL"
+	//LogLevel refers to log level env var, that means to get level of the application logs
+	LogLevel = "LOG_LEVEL"
+	//LogFormat refers to log format env var, that means to get format of the application logs
 	LogFormat = "LOG_FORMAT"
 )
 
+//Get is used to get env string variable and if its doesn`t exists, will return a fallback passed as parameter
 func Get(key, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
@@ -20,6 +24,7 @@ func Get(key, fallback string) string {
 	return fallback
 }
 
+//GetInt is used to get env int variable and if its doesn`t exists, will return a fallback passed as parameter
 func GetInt(key string, fallback int) int {
 	value, ok := os.LookupEnv(key)
 
@@ -30,6 +35,7 @@ func GetInt(key string, fallback int) int {
 	return i
 }
 
+//GetBool is used to get env bool variable
 func GetBool(key string) bool {
 	value, ok := os.LookupEnv(key)
 
@@ -44,6 +50,7 @@ func GetBool(key string) bool {
 	return b
 }
 
+//GetStringSlice is used to get env string slice variable
 func GetStringSlice(key string) []string {
 	if v := Get(key, ""); v != "" {
 		s := strings.ReplaceAll(v, " ", "")
@@ -53,6 +60,7 @@ func GetStringSlice(key string) []string {
 	return []string{}
 }
 
+//GetDuration is used to get env time duration variable and if its doesn`t exists, will return a fallback passed as parameter
 func GetDuration(key string, fallback time.Duration) time.Duration {
 	value, ok := os.LookupEnv(key)
 	if !ok {

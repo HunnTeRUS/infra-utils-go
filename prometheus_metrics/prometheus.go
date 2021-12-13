@@ -1,3 +1,4 @@
+//Package prometheus_metrics implements the service and the configuration to run prometheus server
 package prometheus_metrics
 
 import (
@@ -14,10 +15,16 @@ func init() {
 }
 
 var (
+	//METRICS_ADDRESS gets the endpoint port from env to implements an endpoint inside the
+	//application that will return all prometheus data saved
 	METRICS_ADDRESS = "METRICS_ADDRESS"
-	METRICS_PATH    = "METRICS_PATH"
+	//METRICS_PATH gets the endpoint path from env to implements an endpoint inside the
+	//application that will return all prometheus data saved
+	METRICS_PATH = "METRICS_PATH"
 )
 
+//PrometheusMetrics implements the server and endpoint to return all prometheus data
+//saved about the project
 func PrometheusMetrics(logger log.Logger) {
 	metricsPath := env.Get(METRICS_PATH, "/metrics")
 	metricsAdress := env.Get(METRICS_ADDRESS, "8080")

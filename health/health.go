@@ -1,3 +1,4 @@
+//Package health implements the application health verifier to EKS knows if application is healthy
 package health
 
 import (
@@ -13,13 +14,20 @@ func init() {
 	gin.SetMode(gin.ReleaseMode)
 }
 
+//HealthChecker is a function that will return if the application is ok
 type HealthChecker func() error
 
 var (
+	//HEALTH_CHECKER_ADDRESS receives the health endpoint port path to EKS to use
 	HEALTH_CHECKER_ADDRESS = "HEALTH_CHECKER_ADDRESS"
-	HEALTH_CHECKER_PATH    = "HEALTH_CHECKER_PATH"
+
+	//HEALTH_CHECKER_PATH receives the health endpoint path to EKS to use
+	HEALTH_CHECKER_PATH = "HEALTH_CHECKER_PATH"
 )
 
+//HealthCheck is a function that will validate the healthChecker received by parameter
+//and implement the endpoint thats EKS is going to use to check if application is
+//healthy
 func HealthCheck(logger log.Logger, checkers ...HealthChecker) {
 	healthCheckerPath := env.Get(HEALTH_CHECKER_PATH, "/health")
 	healthCheckerAdress := env.Get(HEALTH_CHECKER_ADDRESS, "4444")
