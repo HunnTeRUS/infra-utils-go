@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/HunnTeRUS/infra-utils-go/configuration/env"
-	"github.com/HunnTeRUS/infra-utils-go/configuration/log"
+	"github.com/HunnTeRUS/infra-utils-go/configuration/logger"
 )
 
 const (
@@ -20,9 +20,25 @@ const (
 	FALLBACK_GRACEFULLY_SHUTDOWN = 5 * time.Second
 )
 
+//GracefullyShutdownInterface declare gracefully_shutdown functions
+type GracefullyShutdownInterface interface {
+	GracefullyShutdownRun(handler http.Handler, addr string, logger logger.Logger) <-chan error
+}
+
+//NewGracefullyShutdownInterface returns a instance of gracefully_shutdown interface,
+//so you can call GracefullyShutdownRun with this instance
+func NewGracefullyShutdownInterface() GracefullyShutdownInterface {
+	return &gracefully{}
+}
+
+type gracefully struct{}
+
 //GracefullyShutdownRun implements the gracefully shutdown to the application, waits
 //for a SO signal to shutdown the application
-func GracefullyShutdownRun(handler http.Handler, addr string, logger log.Logger) <-chan error {
+func (gcf *gracefully) GracefullyShutdownRun(
+	handler http.Handler,
+	addr string,
+	logger logger.Logger) <-chan error {
 	errC := make(chan error, 1)
 
 	srv := &http.Server{
@@ -46,9 +62,7 @@ func GracefullyShutdownRun(handler http.Handler, addr string, logger log.Logger)
 			close(errC)
 		}()
 
-		if err := srv.Shutdown(ctxTimeout); err != nil {
-			errC <- err
-		}
+		srv.Shutdown(ctxTimeout)
 
 		logger.Info("Shutdown completed")
 	}()

@@ -1,5 +1,5 @@
 //Package log implements logs interfaces
-package log
+package logger
 
 //Logger is an interface that will log all the data that application will need to print
 type Logger interface {

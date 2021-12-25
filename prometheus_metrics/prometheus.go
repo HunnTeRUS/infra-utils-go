@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/HunnTeRUS/infra-utils-go/configuration/env"
-	"github.com/HunnTeRUS/infra-utils-go/configuration/log"
+	"github.com/HunnTeRUS/infra-utils-go/configuration/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -23,9 +23,22 @@ var (
 	METRICS_PATH = "METRICS_PATH"
 )
 
+//PrometheusMetricsInterface declares prometheus metrics functions
+type PrometheusMetricsInterface interface {
+	PrometheusMetrics(logger logger.Logger)
+}
+
+type prometheusService struct{}
+
+//NewPrometheusMetricsInterface returns a instance of NewPrometheusMetricsInterface
+//so you can call prometheus functions
+func NewPrometheusMetricsInterface() PrometheusMetricsInterface {
+	return &prometheusService{}
+}
+
 //PrometheusMetrics implements the server and endpoint to return all prometheus data
 //saved about the project
-func PrometheusMetrics(logger log.Logger) {
+func (prm *prometheusService) PrometheusMetrics(logger logger.Logger) {
 	metricsPath := env.Get(METRICS_PATH, "/metrics")
 	metricsAdress := env.Get(METRICS_ADDRESS, "8080")
 

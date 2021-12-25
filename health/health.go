@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/HunnTeRUS/infra-utils-go/configuration/env"
-	"github.com/HunnTeRUS/infra-utils-go/configuration/log"
+	"github.com/HunnTeRUS/infra-utils-go/configuration/logger"
 	"github.com/gin-gonic/gin"
 )
 
@@ -25,10 +25,23 @@ var (
 	HEALTH_CHECKER_PATH = "HEALTH_CHECKER_PATH"
 )
 
+//HealthInterface is an interface to implement the methods that health package implements
+type HealthInterface interface {
+	HealthCheck(logger logger.Logger, checkers ...HealthChecker)
+}
+
+//NewHealthHandler is used to return a instance of the required interface, so you can use
+//health methods
+func NewHealthHandler() HealthInterface {
+	return &health{}
+}
+
+type health struct{}
+
 //HealthCheck is a function that will validate the healthChecker received by parameter
 //and implement the endpoint thats EKS is going to use to check if application is
 //healthy
-func HealthCheck(logger log.Logger, checkers ...HealthChecker) {
+func (ht *health) HealthCheck(logger logger.Logger, checkers ...HealthChecker) {
 	healthCheckerPath := env.Get(HEALTH_CHECKER_PATH, "/health")
 	healthCheckerAdress := env.Get(HEALTH_CHECKER_ADDRESS, "4444")
 
