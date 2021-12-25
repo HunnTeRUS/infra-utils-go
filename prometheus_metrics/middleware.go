@@ -11,15 +11,14 @@ import (
 )
 
 var (
-	dimensions  []string
+	dimensions  *[]string = &[]string{""}
 	reqTotal    *prometheus.CounterVec
 	reqDuration *prometheus.HistogramVec
 )
 
 //Handler implements the endpoint middleware to intercept all requests
 //and save the data
-func Handler(c *gin.Context, applicationName string) {
-	initializeConfigurations(applicationName)
+func Handler(c *gin.Context) {
 	start := time.Now()
 
 	c.Next()
@@ -34,15 +33,15 @@ func Handler(c *gin.Context, applicationName string) {
 }
 
 func initializeConfigurations(applicationName string) {
-	dimensions = []string{"status", "method", "path"}
+	*dimensions = []string{"status", "method", "path"}
 	reqTotal = promauto.NewCounterVec(prometheus.CounterOpts{
 		Name:      "request_total",
 		Help:      "Total number of requests handled",
 		Subsystem: applicationName,
-	}, dimensions)
+	}, *dimensions)
 	reqDuration = promauto.NewHistogramVec(prometheus.HistogramOpts{
 		Name:      "request_duration_milliseconds",
 		Help:      "Request latencies in milliseconds",
 		Subsystem: applicationName,
-	}, dimensions)
+	}, *dimensions)
 }
