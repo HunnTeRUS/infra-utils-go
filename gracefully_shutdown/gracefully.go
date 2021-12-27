@@ -22,7 +22,12 @@ const (
 
 //GracefullyShutdownInterface declare gracefully_shutdown functions
 type GracefullyShutdownInterface interface {
-	GracefullyShutdownRun(handler http.Handler, addr string, logger logger.Logger) <-chan error
+	GracefullyShutdownRun(
+		handler http.Handler,
+		addr string,
+		logger logger.Logger,
+		chanError chan<- error,
+	)
 }
 
 //NewGracefullyShutdownInterface returns a instance of gracefully_shutdown interface,
@@ -38,8 +43,8 @@ type gracefully struct{}
 func (gcf *gracefully) GracefullyShutdownRun(
 	handler http.Handler,
 	addr string,
-	logger logger.Logger) <-chan error {
-	errC := make(chan error, 1)
+	logger logger.Logger,
+	chanError chan<- error) {
 
 	srv := &http.Server{
 		Addr:    addr,
@@ -59,7 +64,7 @@ func (gcf *gracefully) GracefullyShutdownRun(
 		defer func() {
 			stop()
 			cancel()
-			close(errC)
+			close(chanError)
 		}()
 
 		srv.Shutdown(ctxTimeout)
@@ -70,9 +75,8 @@ func (gcf *gracefully) GracefullyShutdownRun(
 	go func() {
 		logger.Info("Listening and serving")
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			errC <- err
+			chanError <- err
+			return
 		}
 	}()
-
-	return errC
 }

@@ -10,18 +10,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInitializeConfigurations(t *testing.T) {
-	applicationName := "test"
-	initializeConfigurations(applicationName)
-
-	assert.NotEmpty(t, dimensions)
-	assert.NotNil(t, reqTotal)
-	assert.NotNil(t, reqDuration)
-}
-
 func TestHandler_test_metrics_successfully_saved(t *testing.T) {
-	go NewPrometheusMetricsInterface().PrometheusMetrics(log, "metricsTest")
+	channelError := make(chan error)
+	go NewPrometheusMetricsInterface().PrometheusMetrics(log, channelError, "tests")
 	router := gin.Default()
+	gin.SetMode(gin.TestMode)
 
 	router.GET("/testMetrics", Handler, handleEmptyPath)
 	go router.Run(":9898")
@@ -40,12 +33,16 @@ func TestHandler_test_metrics_successfully_saved(t *testing.T) {
 	closer, _ := io.ReadAll(respMetrics.Body)
 
 	// Getting a slice of bytes because string is so long, and then, on convert to a string variable
-	// the last informations is hidden
+	// the last informations is hidden, then, treating prometheus string response
 	for i := 7500; i < len(closer); i++ {
 		metricsResponse = metricsResponse + string(closer[i])
 	}
 
-	assert.True(t, strings.Contains(metricsResponse, `test_request_total{method="GET",path="/test",status="200"} 1`))
+	var metricsRequestCount *string = new(string)
+	*metricsRequestCount = strings.ReplaceAll(metricsResponse, `"`, "")
+	*metricsRequestCount = strings.ReplaceAll(*metricsRequestCount, `\`, "")
+
+	assert.True(t, strings.Contains(*metricsRequestCount, `status=200} 1`))
 }
 
 func handleEmptyPath(c *gin.Context) {

@@ -27,7 +27,11 @@ var (
 
 //HealthInterface is an interface to implement the methods that health package implements
 type HealthInterface interface {
-	HealthCheck(logger logger.Logger, checkers ...HealthChecker)
+	HealthCheck(
+		logger logger.Logger,
+		channelError chan<- error,
+		checkers ...HealthChecker,
+	)
 }
 
 //NewHealthHandler is used to return a instance of the required interface, so you can use
@@ -41,23 +45,27 @@ type health struct{}
 //HealthCheck is a function that will validate the healthChecker received by parameter
 //and implement the endpoint thats EKS is going to use to check if application is
 //healthy
-func (ht *health) HealthCheck(logger logger.Logger, checkers ...HealthChecker) {
+func (ht *health) HealthCheck(
+	logger logger.Logger,
+	channelError chan<- error,
+	checkers ...HealthChecker,
+) {
 	healthCheckerPath := env.Get(HEALTH_CHECKER_PATH, "/health")
 	healthCheckerAdress := env.Get(HEALTH_CHECKER_ADDRESS, "4444")
 
 	health := gin.Default()
 
 	health.GET(healthCheckerPath, func(c *gin.Context) {
-		HealthCheckHandler(c, checkers...)
+		healthCheckHandler(c, checkers...)
 	})
 
 	if err := health.Run(fmt.Sprintf(":%s", healthCheckerAdress)); err != nil {
 		logger.Error(fmt.Sprintf("Error trying to execute healthChecker on port %s", healthCheckerAdress), err)
-		panic(err)
+		channelError <- err
 	}
 }
 
-func HealthCheckHandler(c *gin.Context, checkers ...HealthChecker) {
+func healthCheckHandler(c *gin.Context, checkers ...HealthChecker) {
 	c.Header("content-type", "application/json")
 	for _, checker := range checkers {
 		if checker == nil {

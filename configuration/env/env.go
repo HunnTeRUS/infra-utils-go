@@ -3,8 +3,6 @@ package env
 
 import (
 	"os"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -22,42 +20,6 @@ func Get(key, fallback string) string {
 	}
 
 	return fallback
-}
-
-//GetInt is used to get env int variable and if its doesn`t exists, will return a fallback passed as parameter
-func GetInt(key string, fallback int) int {
-	value, ok := os.LookupEnv(key)
-
-	if !ok {
-		return fallback
-	}
-	i, _ := strconv.Atoi(value)
-	return i
-}
-
-//GetBool is used to get env bool variable
-func GetBool(key string) bool {
-	value, ok := os.LookupEnv(key)
-
-	if !ok {
-		return false
-	}
-	b, err := strconv.ParseBool(value)
-	if err != nil {
-		return false
-	}
-
-	return b
-}
-
-//GetStringSlice is used to get env string slice variable
-func GetStringSlice(key string) []string {
-	if v := Get(key, ""); v != "" {
-		s := strings.ReplaceAll(v, " ", "")
-		return strings.Split(s, ",")
-	}
-
-	return []string{}
 }
 
 //GetDuration is used to get env time duration variable and if its doesn`t exists, will return a fallback passed as parameter

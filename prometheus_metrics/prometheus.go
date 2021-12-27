@@ -25,7 +25,11 @@ var (
 
 //PrometheusMetricsInterface declares prometheus metrics functions
 type PrometheusMetricsInterface interface {
-	PrometheusMetrics(logger logger.Logger, applicationName string)
+	PrometheusMetrics(
+		logger logger.Logger,
+		channelError chan<- error,
+		applicationName string,
+	)
 }
 
 type prometheusService struct{}
@@ -39,7 +43,9 @@ func NewPrometheusMetricsInterface() PrometheusMetricsInterface {
 //PrometheusMetrics implements the server and endpoint to return all prometheus data
 //saved about the project
 func (prm *prometheusService) PrometheusMetrics(
-	logger logger.Logger, applicationName string) {
+	logger logger.Logger,
+	channelError chan<- error,
+	applicationName string) {
 	go initializeConfigurations(applicationName)
 	metricsPath := env.Get(METRICS_PATH, "/metrics")
 	metricsAdress := env.Get(METRICS_ADDRESS, "8080")
@@ -53,7 +59,7 @@ func (prm *prometheusService) PrometheusMetrics(
 	})
 
 	if err := m.Run(fmt.Sprintf(":%s", metricsAdress)); err != nil {
-		logger.Error(fmt.Sprintf("Error tring to execute promethus on %s", metricsAdress), err)
-		panic(err)
+		logger.Error(fmt.Sprintf("Error tring to execute prometheus on %s", metricsAdress), err)
+		channelError <- err
 	}
 }

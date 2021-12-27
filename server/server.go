@@ -2,7 +2,6 @@
 package server
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/HunnTeRUS/infra-utils-go/configuration/logger"
@@ -11,34 +10,41 @@ import (
 	"github.com/HunnTeRUS/infra-utils-go/prometheus_metrics"
 )
 
+// ServerInterface implements the method Start that will be used to initialize infra-utils method
 type ServerInterface interface {
-	Start(handler http.Handler, addr string, logger log.Logger, checkers ...health.HealthChecker)
+	Start(
+		handler http.Handler,
+		addr string,
+		logger logger.Logger,
+		applicationName string,
+		checkers ...health.HealthChecker,
+	) <-chan error
 }
 
-type Server struct {
+type server struct {
+}
+
+// NewServerInterface returns a instance of ServerInterface
+func NewServerInterface() ServerInterface {
+	return &server{}
 }
 
 //Start is used to start all infra-utils-go methods and services
-func (s *Server) Start(
+func (s *server) Start(
 	handler http.Handler,
 	addr string,
 	logger logger.Logger,
-	errChannel chan<- error,
-	checkers ...health.HealthChecker) {
+	applicationName string,
+	checkers ...health.HealthChecker) <-chan error {
 
+	channelError := make(chan error, 3)
 	prometheusHandler := prometheus_metrics.NewPrometheusMetricsInterface()
 	healthHandler := health.NewHealthHandler()
 	gracefullyHandler := gracefully_shutdown.NewGracefullyShutdownInterface()
 
-	go prometheusHandler.PrometheusMetrics(logger)
-	go healthHandler.HealthCheck(logger, checkers...)
-	errC := gracefullyHandler.GracefullyShutdownRun(handler, addr, logger)
+	go prometheusHandler.PrometheusMetrics(logger, channelError, applicationName)
+	go healthHandler.HealthCheck(logger, channelError, checkers...)
+	go gracefullyHandler.GracefullyShutdownRun(handler, addr, logger, channelError)
 
-	if err := <-errC; err != nil {
-		logger.Error("Error tryng to shutdown server", err)
-		errChannel <- err
-		return
-	}
-
-	logger.Info("Exiting...")
+	return channelError
 }

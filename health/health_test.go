@@ -22,6 +22,7 @@ func TestHealthCheck_error_trying_to_start_health_endpoint(t *testing.T) {
 	portWrongTestValue := "TEST"
 	os.Setenv(HEALTH_CHECKER_ADDRESS, portWrongTestValue)
 	defer os.Clearenv()
+	channelError := make(chan error, 1)
 
 	heandleHealth := NewHealthHandler()
 
@@ -29,20 +30,23 @@ func TestHealthCheck_error_trying_to_start_health_endpoint(t *testing.T) {
 		return nil
 	}
 
-	assert.Panics(t, func() {
-		heandleHealth.HealthCheck(mocks.NewLogInterfaceMock(), healthChecker)
-	})
+	heandleHealth.HealthCheck(mocks.NewLogInterfaceMock(), channelError, healthChecker)
+
+	err := channelError
+
+	assert.NotNil(t, err)
 }
 
 func TestHealthCheck_start_successfully_and_is_application_healthy(t *testing.T) {
 	portWrongTestValue := "4545"
 	os.Setenv(HEALTH_CHECKER_ADDRESS, portWrongTestValue)
 	heandleHealth := NewHealthHandler()
+	channelError := make(chan error, 1)
 	healthChecker := func() error {
 		return nil
 	}
 
-	go heandleHealth.HealthCheck(mocks.NewLogInterfaceMock(), healthChecker)
+	go heandleHealth.HealthCheck(mocks.NewLogInterfaceMock(), channelError, healthChecker)
 	w := httptest.NewRecorder()
 	healthResponse := HealthResponseStruct{}
 
@@ -62,8 +66,9 @@ func TestHealthCheck_checker_is_nil(t *testing.T) {
 	portWrongTestValue := "4546"
 	os.Setenv(HEALTH_CHECKER_ADDRESS, portWrongTestValue)
 	heandleHealth := NewHealthHandler()
-	go heandleHealth.HealthCheck(mocks.NewLogInterfaceMock(), nil)
+	channelError := make(chan error, 1)
 	w := httptest.NewRecorder()
+	go heandleHealth.HealthCheck(mocks.NewLogInterfaceMock(), channelError, nil)
 	healthResponse := HealthResponseStruct{}
 
 	resp, err := http.Get("http://localhost:4546/health")
@@ -83,11 +88,12 @@ func TestHealthCheck_application_is_not_healthy(t *testing.T) {
 	portWrongTestValue := "4547"
 	os.Setenv(HEALTH_CHECKER_ADDRESS, portWrongTestValue)
 	heandleHealth := NewHealthHandler()
+	channelError := make(chan error, 1)
 	healthChecker := func() error {
 		return errors.New("Error test")
 	}
 
-	go heandleHealth.HealthCheck(mocks.NewLogInterfaceMock(), healthChecker)
+	go heandleHealth.HealthCheck(mocks.NewLogInterfaceMock(), channelError, healthChecker)
 	w := httptest.NewRecorder()
 	healthResponse := HealthResponseStruct{}
 

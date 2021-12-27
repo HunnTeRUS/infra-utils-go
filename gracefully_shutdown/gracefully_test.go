@@ -1,10 +1,10 @@
 package gracefully_shutdown
 
 import (
-	"fmt"
 	"os"
 	"syscall"
 	"testing"
+	"time"
 
 	"github.com/HunnTeRUS/infra-utils-go/configuration/logger/mocks"
 	"github.com/gin-gonic/gin"
@@ -17,27 +17,29 @@ func TestGracefullyShutdownRun_receive_so_notify(t *testing.T) {
 	addr := ":7878"
 	log := mocks.NewLogInterfaceMock()
 	gracefull := NewGracefullyShutdownInterface()
+	channelError := make(chan error)
 
-	errChannel := gracefull.GracefullyShutdownRun(router, addr, log)
+	gracefull.GracefullyShutdownRun(router, addr, log, channelError)
+	time.Sleep(200 * time.Millisecond)
 
-	fmt.Print("test")
 	syscall.Kill(os.Getpid(), syscall.SIGQUIT)
+	err := <-channelError
 
-	err := <-errChannel
 	assert.Nil(t, err)
 }
 
 func TestGracefullyShutdownRun_error_trying_to_start_server(t *testing.T) {
+
 	router := gin.Default()
-	addr := ":7877"
+	addr := "TEST_TEST"
 	go router.Run(addr)
 	log := mocks.NewLogInterfaceMock()
 	gracefull := NewGracefullyShutdownInterface()
+	channelError := make(chan error)
 
-	channelError := gracefull.GracefullyShutdownRun(router, addr, log)
+	go gracefull.GracefullyShutdownRun(router, addr, log, channelError)
 
 	err := <-channelError
-	syscall.Kill(os.Getpid(), syscall.SIGQUIT)
 
 	assert.NotNil(t, err)
 }
