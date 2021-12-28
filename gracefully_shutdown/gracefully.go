@@ -3,6 +3,8 @@ package gracefully_shutdown
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -46,8 +48,12 @@ func (gcf *gracefully) GracefullyShutdownRun(
 	logger logger.Logger,
 	chanError chan<- error) {
 
+	logger.Info(fmt.Sprintf("About to start application on port %s",
+		addr,
+	))
+
 	srv := &http.Server{
-		Addr:    addr,
+		Addr:    fmt.Sprintf(":%s", addr),
 		Handler: handler,
 	}
 
@@ -75,7 +81,10 @@ func (gcf *gracefully) GracefullyShutdownRun(
 	go func() {
 		logger.Info("Listening and serving")
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			chanError <- err
+			chanError <- errors.New(fmt.Sprintf("Error tring to run application on %s. Error: %v",
+				addr,
+				err,
+			))
 			return
 		}
 	}()

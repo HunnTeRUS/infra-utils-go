@@ -2,6 +2,7 @@
 package prometheus_metrics
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/HunnTeRUS/infra-utils-go/configuration/env"
@@ -50,7 +51,10 @@ func (prm *prometheusService) PrometheusMetrics(
 	metricsPath := env.Get(METRICS_PATH, "/metrics")
 	metricsAdress := env.Get(METRICS_ADDRESS, "8080")
 
-	logger.Info("About to start prometheus handler server")
+	logger.Info(fmt.Sprintf("About to start prometheus handler server on port %s and path %s",
+		metricsAdress,
+		metricsPath,
+	))
 
 	prom := promhttp.Handler()
 	m := gin.Default()
@@ -60,6 +64,9 @@ func (prm *prometheusService) PrometheusMetrics(
 
 	if err := m.Run(fmt.Sprintf(":%s", metricsAdress)); err != nil {
 		logger.Error(fmt.Sprintf("Error tring to execute prometheus on %s", metricsAdress), err)
-		channelError <- err
+		channelError <- errors.New(fmt.Sprintf("Error tring to execute prometheus on %s. Error: %v",
+			metricsAdress,
+			err,
+		))
 	}
 }

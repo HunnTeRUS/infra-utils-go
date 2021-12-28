@@ -2,6 +2,7 @@
 package health
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -42,9 +43,9 @@ func NewHealthHandler() HealthInterface {
 
 type health struct{}
 
-//HealthCheck is a function that will validate the healthChecker received by parameter
-//and implement the endpoint thats EKS is going to use to check if application is
-//healthy
+//	HealthCheck is a function that will validate the healthChecker received by parameter
+//	and implement the endpoint thats EKS is going to use to check if application is
+//	healthy
 func (ht *health) HealthCheck(
 	logger logger.Logger,
 	channelError chan<- error,
@@ -52,6 +53,11 @@ func (ht *health) HealthCheck(
 ) {
 	healthCheckerPath := env.Get(HEALTH_CHECKER_PATH, "/health")
 	healthCheckerAdress := env.Get(HEALTH_CHECKER_ADDRESS, "4444")
+
+	logger.Info(fmt.Sprintf("About to start health checker handler server on port %s and path %s",
+		healthCheckerAdress,
+		healthCheckerPath,
+	))
 
 	health := gin.Default()
 
@@ -61,7 +67,10 @@ func (ht *health) HealthCheck(
 
 	if err := health.Run(fmt.Sprintf(":%s", healthCheckerAdress)); err != nil {
 		logger.Error(fmt.Sprintf("Error trying to execute healthChecker on port %s", healthCheckerAdress), err)
-		channelError <- err
+		channelError <- errors.New(fmt.Sprintf("Error tring to execute healthChecker on %s. Error: %v",
+			healthCheckerAdress,
+			err,
+		))
 	}
 }
 

@@ -37,6 +37,7 @@ to print the logs like you want
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/HunnTeRUS/infra-utils-go/configuration/logger/mocks"
@@ -49,20 +50,20 @@ func main() {
 
 	router := gin.Default()
 	serverHandler := server.NewServerInterface()
-	applicationAddress := "8081"
+	applicationAddress := "9999"
 	logsHandler := mocks.NewLogInterfaceMock()
 	applicationName := "applicationExampleTest"
-	
+
 	//This health handler can be an ping to an database or another else
 	applicationHealthVerifier := func() error {
 		return nil
 	}
-	
+
 	//prometheus_metrics.Handler is the middleware to register prometheus
 	//metrics of this endpoint
 	router.GET("/test", prometheus_metrics.Handler, handleTestEndpoint)
 
-        //Start method returns a channel to handle and wait for errors
+	//Start method returns a channel to handle and wait for errors
 	channelError := serverHandler.Start(
 		router,
 		applicationAddress,
@@ -70,10 +71,11 @@ func main() {
 		applicationName,
 		applicationHealthVerifier,
 	)
-	
-	if err := channelError; err != nil {
-            //DO_SOMETHING
-        }
+
+	// Wait for errors
+	if err := <-channelError; err != nil {
+		fmt.Println(err)
+	}
 }
 
 func handleTestEndpoint(c *gin.Context) {

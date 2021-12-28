@@ -14,7 +14,7 @@ import (
 func TestGracefullyShutdownRun_receive_so_notify(t *testing.T) {
 
 	router := gin.Default()
-	addr := ":7878"
+	addr := "7878"
 	log := mocks.NewLogInterfaceMock()
 	gracefull := NewGracefullyShutdownInterface()
 	channelError := make(chan error)

@@ -37,6 +37,7 @@ func (s *server) Start(
 	applicationName string,
 	checkers ...health.HealthChecker) <-chan error {
 
+	logger.Info("Starting infra-utils services")
 	channelError := make(chan error, 3)
 	prometheusHandler := prometheus_metrics.NewPrometheusMetricsInterface()
 	healthHandler := health.NewHealthHandler()
